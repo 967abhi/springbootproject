@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spring Core – Lecture Notes</title>
+<style>
+  :root {
+    --bg: #f7f8fa; --fg: #1f2328; --muted: #57606a; --card: #ffffff;
+    --border: #d8dee4; --accent: #2e7d32; --accent-soft: #e8f5e9;
+    --code-bg: #0f172a; --code-fg: #e2e8f0; --inline-bg: #eef1f4;
+    --warn-bg: #fff8e1; --warn-border: #f9a825;
+    --good: #2e7d32; --bad: #c62828;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+    background: var(--bg); color: var(--fg); line-height: 1.65; font-size: 16px;
+  }
+  nav {
+    position: fixed; top: 0; left: 0; bottom: 0; width: 270px; overflow-y: auto;
+    background: #1b2a1e; color: #cfe3d1; padding: 24px 18px;
+  }
+  nav h2 { color: #fff; font-size: 17px; margin: 0 0 16px; }
+  nav a { color: #cfe3d1; text-decoration: none; display: block; padding: 4px 8px; border-radius: 6px; font-size: 14px; }
+  nav a:hover { background: #2e4a33; color: #fff; }
+  nav a.sub { padding-left: 22px; font-size: 13px; color: #a9c4ac; }
+  main { margin-left: 270px; padding: 40px 56px; max-width: 1100px; }
+  @media (max-width: 900px) { nav { display: none; } main { margin-left: 0; padding: 20px; } }
+  h1 { font-size: 34px; margin: 0 0 8px; color: var(--accent); }
+  h2 {
+    font-size: 26px; margin-top: 56px; padding-bottom: 8px;
+    border-bottom: 3px solid var(--accent); scroll-margin-top: 20px;
+  }
+  h3 { font-size: 19px; margin-top: 32px; color: #1b5e20; scroll-margin-top: 20px; }
+  .subtitle { color: var(--muted); margin-bottom: 28px; }
+  .card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+    padding: 18px 22px; margin: 18px 0; box-shadow: 0 1px 2px rgba(0,0,0,.04);
+  }
+  .note { background: var(--accent-soft); border-left: 5px solid var(--accent); padding: 12px 18px; border-radius: 6px; margin: 16px 0; }
+  .warn { background: var(--warn-bg); border-left: 5px solid var(--warn-border); padding: 12px 18px; border-radius: 6px; margin: 16px 0; }
+  code { font-family: Consolas, "Cascadia Code", monospace; font-size: 0.92em; background: var(--inline-bg); padding: 1px 6px; border-radius: 4px; }
+  pre {
+    background: var(--code-bg); color: var(--code-fg); padding: 16px 20px; border-radius: 8px;
+    overflow-x: auto; font-size: 14px; line-height: 1.55;
+  }
+  pre code { background: none; padding: 0; color: inherit; font-size: inherit; }
+  .k { color: #c792ea; } .s { color: #c3e88d; } .c { color: #7f8ea3; font-style: italic; }
+  .t { color: #82aaff; } .a { color: #ffcb6b; }
+  table { border-collapse: collapse; width: 100%; margin: 16px 0; background: var(--card); font-size: 15px; }
+  th, td { border: 1px solid var(--border); padding: 9px 12px; text-align: left; vertical-align: top; }
+  th { background: #e3ece4; }
+  tr:nth-child(even) td { background: #fafbfc; }
+  .pro { color: var(--good); font-weight: 600; } .con { color: var(--bad); font-weight: 600; }
+  .badge { display: inline-block; background: var(--accent); color: #fff; font-size: 12px; padding: 2px 8px; border-radius: 10px; margin-right: 6px; font-family: Consolas, monospace; }
+  .flow { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 18px; }
+  .step { display: flex; gap: 12px; align-items: flex-start; padding: 8px 0; border-bottom: 1px dashed var(--border); }
+  .step:last-child { border-bottom: none; }
+  .num { flex: 0 0 30px; height: 30px; border-radius: 50%; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; }
+  .num.phase { background: #455a64; font-size: 11px; }
+  .arrow { text-align: center; color: var(--muted); font-size: 20px; margin: 4px 0; }
+  ol.qa li { margin: 6px 0; }
+  details { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 8px 14px; margin: 8px 0; }
+  summary { cursor: pointer; font-weight: 600; }
+  footer { margin-top: 60px; color: var(--muted); font-size: 13px; text-align: center; }
+</style>
+</head>
+<body>
+
+<nav>
+  <h2>🌱 Spring Core Notes</h2>
+  <a href="#overview">Overview</a>
+  <a href="#why">0. Why Spring?</a>
+  <a href="#l1">1. IoC Container &amp; Beans</a>
+  <a class="sub" href="#l1-terms">Key terms</a>
+  <a class="sub" href="#l1-bf">BeanFactory vs ApplicationContext</a>
+  <a class="sub" href="#l1-xml">XML configuration</a>
+  <a class="sub" href="#l1-getbean">Loading &amp; getBean()</a>
+  <a class="sub" href="#l1-tax">TemplateTax assignment</a>
+  <a href="#l2">2. Constructor Injection</a>
+  <a href="#l3">3. Setter Injection</a>
+  <a class="sub" href="#l3-compare">Constructor vs Setter</a>
+  <a href="#l4">4. Scopes &amp; Lifecycle</a>
+  <a class="sub" href="#l4-scopes">Bean scopes</a>
+  <a class="sub" href="#l4-lifecycle">Lifecycle phases</a>
+  <a class="sub" href="#l4-callbacks">Callback styles</a>
+  <a class="sub" href="#l4-close">Closing the context</a>
+  <a class="sub" href="#l4-bugs">socialmedia gotchas</a>
+  <a href="#gotchas">5. Common Gotchas</a>
+  <a href="#exceptions">6. Exceptions Cheat Sheet</a>
+  <a href="#questions">7. Revision Questions</a>
+  <a href="#next">8. Up Next: Annotations</a>
+</nav>
+
+<main>
+
+<h1>Spring Core – Lecture Notes</h1>
+<div class="subtitle">IoC · Beans · Dependency Injection · Bean Scopes · Bean Lifecycle</div>
+
+<section id="overview">
+<div class="card">
+<p>These notes go with the projects in this repo, in commit order:</p>
+<table>
+  <tr><th>#</th><th>Commit</th><th>Project</th><th>Topic</th></tr>
+  <tr><td>1</td><td><code>1150f76</code> first commit</td><td><code>carproject</code>, <code>TemplateTax I</code></td><td>IoC container, XML config, beans, <code>getBean()</code></td></tr>
+  <tr><td>2</td><td><code>b6d09b8</code> Constructor dependency injection</td><td><code>LaptopDealer</code></td><td>Constructor injection (<code>&lt;constructor-arg&gt;</code>)</td></tr>
+  <tr><td>3</td><td><code>821ac12</code> setter injection</td><td><code>LaptopDealer</code></td><td>Setter injection (<code>&lt;property&gt;</code>)</td></tr>
+  <tr><td>4</td><td><code>238a8f6</code> bean lifecycle</td><td><code>socialmedia</code></td><td>Bean scopes, <code>init-method</code>, <code>destroy-method</code></td></tr>
+</table>
+<p><strong>Stack:</strong> Spring Boot 4.1.1 parent, Java 21. The Boot starters pull in <code>spring-context</code>, which has <code>ClassPathXmlApplicationContext</code>.
+<code>@SpringBootApplication</code> is commented out on purpose: these lectures use <strong>plain Spring Core with XML</strong>, not Boot auto-configuration.</p>
+</div>
+</section>
+
+<!-- ================================================================ -->
+<h2 id="why">0. Why Spring? The problem it solves</h2>
+
+<p>Without Spring, a class creates its own dependencies:</p>
+<pre><code><span class="k">public class</span> <span class="t">Dell</span> {
+    <span class="t">Processors</span> processors = <span class="k">new</span> <span class="t">i5</span>();   <span class="c">// hard-coded, tightly coupled</span>
+}</code></pre>
+
+<ul>
+  <li><strong>Tight coupling:</strong> <code>Dell</code> is tied to <code>i5</code>. To switch to <code>i7</code> you have to edit and recompile <code>Dell</code>.</li>
+  <li><strong>Hard to test:</strong> you can't pass in a fake processor.</li>
+  <li><strong>Object creation is spread everywhere:</strong> every class calls <code>new</code> on its own.</li>
+</ul>
+<div class="note">Spring moves the job of <strong>creating objects and wiring them together</strong> out of your classes and into a <strong>container</strong>. Your classes only declare <em>what they need</em> (usually as an interface), and the container supplies it.</div>
+
+<!-- ================================================================ -->
+<h2 id="l1"><span class="badge">1150f76</span>1. Lecture 1 – IoC Container &amp; Beans (<code>carproject</code>)</h2>
+
+<h3 id="l1-terms">1.1 Key terms</h3>
+<table>
+  <tr><th>Term</th><th>Meaning</th></tr>
+  <tr><td><strong>IoC (Inversion of Control)</strong></td><td>Control over creating objects and managing their lifecycle is <em>inverted</em>: it moves from your code to the framework. You don't call <code>new</code>; Spring does.</td></tr>
+  <tr><td><strong>IoC Container</strong></td><td>The Spring object that creates, configures, stores, and destroys objects. In code this is the <code>ApplicationContext</code>.</td></tr>
+  <tr><td><strong>Bean</strong></td><td>Any object that the Spring container creates and manages.</td></tr>
+  <tr><td><strong>Configuration metadata</strong></td><td>The instructions telling the container <em>which</em> beans to create and <em>how</em>. These can be XML (this course so far), annotations, or Java <code>@Configuration</code> classes.</td></tr>
+  <tr><td><strong>DI (Dependency Injection)</strong></td><td>The <em>technique</em> Spring uses to implement IoC: it <strong>injects</strong> a bean's dependencies into it (through a constructor or setter).</td></tr>
+</table>
+<div class="note">IoC is the <strong>principle</strong>; DI is the <strong>pattern/implementation</strong> of that principle.</div>
+
+<h3 id="l1-bf">1.2 BeanFactory vs ApplicationContext</h3>
+<table>
+  <tr><th><code>BeanFactory</code></th><th><code>ApplicationContext</code></th></tr>
+  <tr><td>The basic container interface</td><td>A sub-interface of <code>BeanFactory</code> with more features</td></tr>
+  <tr><td><strong>Lazy</strong>: a bean is created only when you ask for it</td><td><strong>Eager</strong> for singletons: they're created when the context starts</td></tr>
+  <tr><td>No event handling, i18n, or AOP integration</td><td>Supports events, i18n (<code>MessageSource</code>), AOP, and annotation processing</td></tr>
+  <tr><td>Rarely used directly today</td><td><strong>What you'll actually use</strong></td></tr>
+</table>
+<p>Common <code>ApplicationContext</code> implementations:</p>
+<ul>
+  <li><code>ClassPathXmlApplicationContext</code>: reads XML from the <strong>classpath</strong> (<code>src/main/resources</code>). <strong>Used in this course.</strong></li>
+  <li><code>FileSystemXmlApplicationContext</code>: reads XML from a file system path.</li>
+  <li><code>AnnotationConfigApplicationContext</code>: reads <code>@Configuration</code> Java classes (next topic).</li>
+</ul>
+
+<h3>1.3 Program to an interface</h3>
+<pre><code><span class="k">public interface</span> <span class="t">Car</span> {
+    <span class="k">public void</span> showDetails();
+}
+
+<span class="k">public class</span> <span class="t">FamilyCar</span>     <span class="k">implements</span> <span class="t">Car</span> { ... System.out.println(<span class="s">"This is FamilyCar"</span>); }
+<span class="k">public class</span> <span class="t">SportsCar</span>     <span class="k">implements</span> <span class="t">Car</span> { ... }
+<span class="k">public class</span> <span class="t">CyberTruckCar</span> <span class="k">implements</span> <span class="t">Car</span> { ... }</code></pre>
+<p>The client code (<code>main</code>) only knows about <code>Car</code>. Which concrete class it gets is decided by the <strong>XML configuration</strong>. That's loose coupling.</p>
+
+<h3 id="l1-xml">1.4 The XML configuration file</h3>
+<p><code>src/main/resources/ApplicationContext.xml</code></p>
+<pre><code><span class="c">&lt;?xml version="1.0" encoding="UTF-8"?&gt;</span>
+&lt;<span class="t">beans</span> <span class="a">xmlns</span>=<span class="s">"http://www.springframework.org/schema/beans"</span>
+       <span class="a">xmlns:xsi</span>=<span class="s">"http://www.w3.org/2001/XMLSchema-instance"</span>
+       <span class="a">xsi:schemaLocation</span>=<span class="s">"
+        http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd"</span>&gt;
+
+    &lt;<span class="t">bean</span> <span class="a">id</span>=<span class="s">"family"</span>     <span class="a">class</span>=<span class="s">"com.example.carproject.FamilyCar"</span>&gt;&lt;/<span class="t">bean</span>&gt;
+    &lt;<span class="t">bean</span> <span class="a">id</span>=<span class="s">"sports"</span>     <span class="a">class</span>=<span class="s">"com.example.carproject.SportsCar"</span>&gt;&lt;/<span class="t">bean</span>&gt;
+    &lt;<span class="t">bean</span> <span class="a">id</span>=<span class="s">"cybertruck"</span> <span class="a">class</span>=<span class="s">"com.example.carproject.CyberTruckCar"</span>&gt;&lt;/<span class="t">bean</span>&gt;
+&lt;/<span class="t">beans</span>&gt;</code></pre>
+<ul>
+  <li><code>&lt;beans&gt;</code>: the root element. The <code>xmlns</code> / <code>schemaLocation</code> lines tell the parser which schema (XSD) to validate against. Copy this header as-is.</li>
+  <li><code>&lt;bean&gt;</code>: one object definition.
+    <ul>
+      <li><code>id</code>: a unique name you use to look the bean up.</li>
+      <li><code>class</code>: the <strong>fully qualified class name</strong> (package + class). Spring creates it by reflection, which by default needs a <strong>no-arg constructor</strong>.</li>
+    </ul>
+  </li>
+  <li><code>&lt;bean ...&gt;&lt;/bean&gt;</code> and <code>&lt;bean .../&gt;</code> (self-closing) mean the same thing.</li>
+</ul>
+
+<h3 id="l1-getbean">1.5 Loading the container and getting beans</h3>
+<pre><code><span class="t">ClassPathXmlApplicationContext</span> context =
+        <span class="k">new</span> <span class="t">ClassPathXmlApplicationContext</span>(<span class="s">"ApplicationContext.xml"</span>);
+
+<span class="t">Car</span> car = (<span class="t">Car</span>) context.getBean(beanId);   <span class="c">// beanId = "family" / "sports" / "cybertruck"</span>
+car.showDetails();</code></pre>
+
+<div class="flow">
+  <div class="step"><div class="num">1</div><div><code>new ClassPathXmlApplicationContext(...)</code> finds the XML on the classpath and parses it.</div></div>
+  <div class="step"><div class="num">2</div><div>Spring builds a <code>BeanDefinition</code> for each <code>&lt;bean&gt;</code>.</div></div>
+  <div class="step"><div class="num">3</div><div>All <strong>singleton</strong> beans are instantiated <strong>right away</strong> (eager loading).</div></div>
+  <div class="step"><div class="num">4</div><div><code>getBean("family")</code> returns the stored object.</div></div>
+</div>
+
+<p>Ways to call <code>getBean</code>:</p>
+<pre><code><span class="t">Car</span> c1 = (<span class="t">Car</span>) context.getBean(<span class="s">"family"</span>);          <span class="c">// by id, needs a cast</span>
+<span class="t">Car</span> c2 = context.getBean(<span class="s">"family"</span>, <span class="t">Car</span>.class);     <span class="c">// by id + type, no cast (preferred)</span>
+<span class="t">Car</span> c3 = context.getBean(<span class="t">Car</span>.class);               <span class="c">// by type: FAILS here, 3 beans implement Car</span>
+                                                   <span class="c">// -&gt; NoUniqueBeanDefinitionException</span></code></pre>
+<p>That third case is why the commented-out <code>context.getBean(Brand.class)</code> in <code>LaptopDealer</code> would fail: there are several <code>Brand</code> beans.</p>
+
+<h3>1.6 Runtime selection example</h3>
+<p>The user enters 1/2/3, the code maps it to a bean id with a <code>switch</code>, then calls <code>getBean(beanId)</code>. To add a new car type you only add a class and one <code>&lt;bean&gt;</code> line. The client logic barely changes.</p>
+<div class="warn"><strong>Gotcha:</strong> if the user types something other than 1-3, <code>beanId</code> stays <code>""</code> and <code>getBean("")</code> throws <code>NoSuchBeanDefinitionException</code>. Add a <code>default:</code> case.</div>
+
+<h3 id="l1-tax">1.7 <code>TemplateTax I</code> (assignment template)</h3>
+<p>This is an exercise skeleton:</p>
+<ul>
+  <li><code>Tax</code> interface: <code>setTaxableAmount</code>, <code>calculateTaxAmount</code>, <code>getTaxAmount</code>, <code>getTaxType</code>, <code>isTaxPayed</code>, <code>payTax</code>.</li>
+  <li><code>IncomeTax</code> (tax slabs) and <code>PropertyTax</code> (5% of property value) are meant to implement it.</li>
+  <li><code>TaxApplication.main</code> should load <code>applicationContext.xml</code> with <code>ClassPathXmlApplicationContext</code>.</li>
+</ul>
+<div class="warn">
+<strong>Current state, in case you want to finish it:</strong>
+<ul>
+  <li><code>IncomeTax.java</code> has <strong>no <code>package</code> line</strong> and <strong>no fields</strong> (<code>taxAmount</code>, <code>isTaxPayed</code>), so it won't compile.</li>
+  <li><code>PropertyTax</code> has only TODO comments.</li>
+  <li><code>applicationContext.xml</code> was copied from carproject and still points to <code>com.example.carproject.*</code> classes. It should define <code>com.example.tax.IncomeTax</code> and <code>com.example.tax.PropertyTax</code> beans.</li>
+</ul>
+</div>
+
+<!-- ================================================================ -->
+<h2 id="l2"><span class="badge">b6d09b8</span>2. Lecture 2 – Constructor Injection (<code>LaptopDealer</code>)</h2>
+
+<h3>2.1 The domain</h3>
+<pre><code><span class="t">Brand</span> (interface)            <span class="t">Processors</span> (interface)
+ ├── Dell                     ├── i3
+ ├── Macbook                  ├── i5
+ └── Microsoftlaptop          └── i7</code></pre>
+<p>A laptop <strong>has a</strong> processor. <code>Brand</code> depends on <code>Processors</code>. That's the <strong>dependency</strong>.</p>
+
+<h3>2.2 Code</h3>
+<pre><code><span class="k">public class</span> <span class="t">Dell</span> <span class="k">implements</span> <span class="t">Brand</span> {
+    <span class="t">Processors</span> processors;
+
+    <span class="k">public</span> <span class="t">Dell</span>(<span class="t">Processors</span> processors) {      <span class="c">// dependency comes in through the constructor</span>
+        <span class="k">this</span>.processors = processors;
+    }
+
+    <span class="k">public void</span> ShowDetails() {
+        System.out.println(<span class="s">"You have selected Dell Laptop"</span> + processors.showProcessorsDetails());
+    }
+}</code></pre>
+<pre><code>&lt;<span class="t">bean</span> <span class="a">id</span>=<span class="s">"i3"</span> <span class="a">class</span>=<span class="s">"com.example.LaptopDealer.i3"</span>/&gt;
+&lt;<span class="t">bean</span> <span class="a">id</span>=<span class="s">"i5"</span> <span class="a">class</span>=<span class="s">"com.example.LaptopDealer.i5"</span>/&gt;
+&lt;<span class="t">bean</span> <span class="a">id</span>=<span class="s">"i7"</span> <span class="a">class</span>=<span class="s">"com.example.LaptopDealer.i7"</span>/&gt;
+
+&lt;<span class="t">bean</span> <span class="a">id</span>=<span class="s">"dellwithi3"</span> <span class="a">class</span>=<span class="s">"com.example.LaptopDealer.Dell"</span>&gt;
+    &lt;<span class="t">constructor-arg</span> <span class="a">ref</span>=<span class="s">"i3"</span>/&gt;
+&lt;/<span class="t">bean</span>&gt;</code></pre>
+<ul>
+  <li><code>&lt;constructor-arg ref="i3"/&gt;</code>: pass the bean with id <code>i3</code> as a constructor argument.</li>
+  <li><code>ref</code> = a reference to <strong>another bean</strong>. <code>value</code> = a literal (String, int, ...).</li>
+</ul>
+
+<h3>2.3 More <code>&lt;constructor-arg&gt;</code> options</h3>
+<pre><code><span class="c">&lt;!-- literal value --&gt;</span>
+&lt;<span class="t">constructor-arg</span> <span class="a">value</span>=<span class="s">"16"</span>/&gt;
+
+<span class="c">&lt;!-- several arguments: pick by index, name, or type --&gt;</span>
+&lt;<span class="t">constructor-arg</span> <span class="a">index</span>=<span class="s">"0"</span> <span class="a">ref</span>=<span class="s">"i5"</span>/&gt;
+&lt;<span class="t">constructor-arg</span> <span class="a">index</span>=<span class="s">"1"</span> <span class="a">value</span>=<span class="s">"16"</span>/&gt;
+
+&lt;<span class="t">constructor-arg</span> <span class="a">name</span>=<span class="s">"processors"</span> <span class="a">ref</span>=<span class="s">"i5"</span>/&gt;
+&lt;<span class="t">constructor-arg</span> <span class="a">type</span>=<span class="s">"int"</span> <span class="a">value</span>=<span class="s">"16"</span>/&gt;</code></pre>
+
+<h3>2.4 How Spring handles it</h3>
+<div class="flow">
+  <div class="step"><div class="num">1</div><div>It sees that <code>dellwithi3</code> needs <code>i3</code>, so it creates <code>i3</code> <strong>first</strong> (dependency order).</div></div>
+  <div class="step"><div class="num">2</div><div>It calls <code>new Dell(i3Bean)</code> by reflection.</div></div>
+  <div class="step"><div class="num">3</div><div>The finished bean is stored under the id <code>dellwithi3</code>.</div></div>
+</div>
+
+<h3>2.5 One class, many beans</h3>
+<p>Here <strong>9 beans</strong> come from 3 classes × 3 processors (<code>dellwithi3</code>, <code>dellwithi5</code>, … <code>microsoftlaptopwithi7</code>).
+A bean is an <strong>instance plus configuration</strong>, not a class. The same class can be registered many times with different ids and different dependencies.</p>
+<div class="note">Because <code>i3</code>, <code>i5</code>, <code>i7</code> are singletons, <code>dellwithi3</code>, <code>mackbookwithi3</code>, and <code>microsoftlaptopwithi3</code> all share the <strong>same <code>i3</code> object</strong>.</div>
+
+<h3>2.6 Pros and cons of constructor injection</h3>
+<ul>
+  <li><span class="pro">✔</span> The dependency is <strong>mandatory</strong>: the object can't exist without it, so no <code>NullPointerException</code>.</li>
+  <li><span class="pro">✔</span> The field can be <code>final</code>, so the object is <strong>immutable</strong>.</li>
+  <li><span class="pro">✔</span> The dependencies are obvious from the constructor signature, and it's easy to unit-test (<code>new Dell(new FakeProcessor())</code>).</li>
+  <li><span class="pro">✔</span> <strong>Recommended by the Spring team</strong> for required dependencies.</li>
+  <li><span class="con">✘</span> Long constructors when there are many dependencies (often a sign the class does too much).</li>
+  <li><span class="con">✘</span> Circular dependencies (A needs B, B needs A) <strong>can't</strong> be resolved: <code>BeanCurrentlyInCreationException</code>.</li>
+</ul>
+
+<!-- ================================================================ -->
+<h2 id="l3"><span class="badge">821ac12</span>3. Lecture 3 – Setter Injection (<code>LaptopDealer</code>)</h2>
+
+<h3>3.1 What changed</h3>
+<p>The constructor was replaced by a setter:</p>
+<pre><code><span class="k">public class</span> <span class="t">Dell</span> <span class="k">implements</span> <span class="t">Brand</span> {
+    <span class="t">Processors</span> processors;
+
+    <span class="k">public void</span> setProcessors(<span class="t">Processors</span> processors) {   <span class="c">// setter</span>
+        <span class="k">this</span>.processors = processors;
+    }
+    ...
+}</code></pre>
+<pre><code>&lt;<span class="t">bean</span> <span class="a">id</span>=<span class="s">"dellwithi3"</span> <span class="a">class</span>=<span class="s">"com.example.LaptopDealer.Dell"</span>&gt;
+    &lt;<span class="t">property</span> <span class="a">name</span>=<span class="s">"processors"</span> <span class="a">ref</span>=<span class="s">"i3"</span>&gt;&lt;/<span class="t">property</span>&gt;
+&lt;/<span class="t">bean</span>&gt;</code></pre>
+
+<h3>3.2 How <code>&lt;property name="..."&gt;</code> maps to code (important)</h3>
+<div class="note">
+<code>name="processors"</code> → Spring capitalises the first letter and adds <code>set</code> → calls <strong><code>setProcessors(...)</code></strong>.
+</div>
+<ul>
+  <li>It's matched against the <strong>setter method name</strong>, <em>not</em> the field name (JavaBeans convention).</li>
+  <li>If the setter is missing or misspelled you get <code>NotWritablePropertyException: Invalid property 'processors' of bean class [...Dell]</code>.</li>
+  <li>That's why <code>Microsoftlaptop</code> was also changed in this commit: the field <code>processor</code> was renamed to <code>processors</code> so the setter and the XML match the other classes.</li>
+</ul>
+
+<h3>3.3 How Spring handles it</h3>
+<div class="flow">
+  <div class="step"><div class="num">1</div><div>Spring calls the <strong>no-arg constructor</strong>: <code>new Dell()</code>. (Once the parameterised constructor was removed, Java supplies a default one again.)</div></div>
+  <div class="step"><div class="num">2</div><div>Then it calls <code>setProcessors(i3Bean)</code>.</div></div>
+</div>
+
+<h3>3.4 Injecting literal values and collections with setters</h3>
+<pre><code>&lt;<span class="t">bean</span> <span class="a">id</span>=<span class="s">"laptop"</span> <span class="a">class</span>=<span class="s">"..."</span>&gt;
+    &lt;<span class="t">property</span> <span class="a">name</span>=<span class="s">"ram"</span> <span class="a">value</span>=<span class="s">"16"</span>/&gt;                 <span class="c">&lt;!-- Spring converts "16" to int --&gt;</span>
+    &lt;<span class="t">property</span> <span class="a">name</span>=<span class="s">"processors"</span> <span class="a">ref</span>=<span class="s">"i5"</span>/&gt;
+    &lt;<span class="t">property</span> <span class="a">name</span>=<span class="s">"ports"</span>&gt;
+        &lt;<span class="t">list</span>&gt;
+            &lt;<span class="t">value</span>&gt;USB-C&lt;/<span class="t">value</span>&gt;
+            &lt;<span class="t">value</span>&gt;HDMI&lt;/<span class="t">value</span>&gt;
+        &lt;/<span class="t">list</span>&gt;
+    &lt;/<span class="t">property</span>&gt;
+&lt;/<span class="t">bean</span>&gt;</code></pre>
+<p>Also available: <code>&lt;set&gt;</code>, <code>&lt;map&gt;&lt;entry key=".." value=".."/&gt;&lt;/map&gt;</code>, <code>&lt;props&gt;</code>, <code>&lt;null/&gt;</code>.</p>
+
+<h3 id="l3-compare">3.5 Constructor vs setter injection</h3>
+<table>
+  <tr><th></th><th>Constructor</th><th>Setter</th></tr>
+  <tr><td>XML tag</td><td><code>&lt;constructor-arg&gt;</code></td><td><code>&lt;property name=""&gt;</code></td></tr>
+  <tr><td>When injected</td><td>While the object is being created</td><td>After the object is created (no-arg constructor first)</td></tr>
+  <tr><td>Dependency type</td><td><strong>Mandatory</strong></td><td><strong>Optional</strong> (can be left out)</td></tr>
+  <tr><td>Immutability</td><td>Yes (<code>final</code> fields possible)</td><td>No (can be changed later)</td></tr>
+  <tr><td>Partial injection</td><td>Not possible</td><td>Possible, but unset fields stay <code>null</code> → risk of NPE</td></tr>
+  <tr><td>Circular dependencies</td><td><span class="con">✘ Fails</span></td><td><span class="pro">✔ Can be resolved</span> (for singletons)</td></tr>
+  <tr><td>Readability with many deps</td><td>Long constructor</td><td>One readable line per property</td></tr>
+  <tr><td>If both are used for the same field</td><td>—</td><td><strong>Setter wins</strong> (it runs after the constructor)</td></tr>
+</table>
+<div class="note"><strong>Rule of thumb:</strong> constructor injection for required dependencies, setter injection for optional ones or ones that can change.</div>
+
+<!-- ================================================================ -->
+<h2 id="l4"><span class="badge">238a8f6</span>4. Lecture 4 – Bean Scopes &amp; Bean Lifecycle (<code>socialmedia</code>)</h2>
+
+<h3>4.1 The domain</h3>
+<pre><code><span class="t">User</span>     (interface) ──► SimpleUser      has-a PostList (setter injected)
+<span class="t">PostList</span> (interface) ──► SimplePostList  holds List&lt;Post&gt;
+<span class="t">Post</span>     (interface) ──► Simple          holds a message</code></pre>
+<pre><code>&lt;<span class="t">bean</span> <span class="a">id</span>=<span class="s">"post"</span>     <span class="a">class</span>=<span class="s">"com.example.socialmedia.Simple"</span>         <span class="a">scope</span>=<span class="s">"prototype"</span>/&gt;
+&lt;<span class="t">bean</span> <span class="a">id</span>=<span class="s">"postList"</span> <span class="a">class</span>=<span class="s">"com.example.socialmedia.SimplePostList"</span>/&gt;
+&lt;<span class="t">bean</span> <span class="a">id</span>=<span class="s">"user"</span>     <span class="a">class</span>=<span class="s">"com.example.socialmedia.SimpleUser"</span>
+      <span class="a">init-method</span>=<span class="s">"init"</span> <span class="a">destroy-method</span>=<span class="s">"destroy"</span>&gt;
+    &lt;<span class="t">property</span> <span class="a">name</span>=<span class="s">"postList"</span> <span class="a">ref</span>=<span class="s">"postList"</span>/&gt;
+&lt;/<span class="t">bean</span>&gt;</code></pre>
+
+<h3 id="l4-scopes">4.2 Bean scopes</h3>
+<table>
+  <tr><th>Scope</th><th>Meaning</th><th>Where it works</th></tr>
+  <tr><td><strong>singleton</strong> (default)</td><td><strong>One</strong> instance per container. Every <code>getBean()</code> returns the same object.</td><td>Everywhere</td></tr>
+  <tr><td><strong>prototype</strong></td><td>A <strong>new</strong> instance on every <code>getBean()</code> call</td><td>Everywhere</td></tr>
+  <tr><td>request</td><td>One per HTTP request</td><td>Web apps</td></tr>
+  <tr><td>session</td><td>One per HTTP session</td><td>Web apps</td></tr>
+  <tr><td>application</td><td>One per <code>ServletContext</code></td><td>Web apps</td></tr>
+  <tr><td>websocket</td><td>One per WebSocket session</td><td>Web apps</td></tr>
+</table>
+
+<div class="card">
+<p><strong>Why <code>post</code> must be <code>prototype</code>:</strong> each time the user creates a post, the code calls <code>context.getBean("post")</code>.
+If <code>post</code> were a singleton you'd get the <strong>same</strong> object back every time. <code>setMessage()</code> would overwrite the old message, and the list would hold N references to one object, so "see all posts" would print the latest message N times.
+With <code>prototype</code>, each post is a separate object.</p>
+<p><strong>Why <code>postList</code> and <code>user</code> are singletons:</strong> there's one user and one list of posts for the whole app run. Every <code>getBean("postList")</code> must return the same list.</p>
+</div>
+
+<p>Try it yourself:</p>
+<pre><code><span class="t">Post</span> p1 = context.getBean(<span class="s">"post"</span>, <span class="t">Post</span>.class);
+<span class="t">Post</span> p2 = context.getBean(<span class="s">"post"</span>, <span class="t">Post</span>.class);
+System.out.println(p1 == p2);   <span class="c">// prototype -&gt; false, singleton -&gt; true</span></code></pre>
+
+<table>
+  <tr><th></th><th>Singleton</th><th>Prototype</th></tr>
+  <tr><td>Created</td><td>When the container starts (eager)</td><td>Each time <code>getBean()</code> is called (lazy)</td></tr>
+  <tr><td>Init callback</td><td><span class="pro">✔</span> Called</td><td><span class="pro">✔</span> Called (for each new instance)</td></tr>
+  <tr><td>Destroy callback</td><td><span class="pro">✔</span> Called on <code>context.close()</code></td><td><span class="con">✘ Never called</span>. Spring hands the object over and stops tracking it</td></tr>
+  <tr><td>State</td><td>Should be stateless or shared</td><td>Can hold per-use state</td></tr>
+</table>
+
+<div class="warn">Spring's "singleton" means <strong>one per container per bean id</strong>, not the GoF Singleton pattern (one per JVM/classloader). Two <code>&lt;bean&gt;</code> definitions of the same class give two singletons.</div>
+<div class="warn">If you inject a prototype bean into a singleton, it's injected <strong>only once</strong>, when the singleton is created, so you effectively end up with one instance. That's why this project calls <code>context.getBean("post")</code> every time instead of injecting <code>Post</code> into <code>SimplePostList</code>.
+(Proper fixes: <code>ObjectFactory</code>/<code>Provider</code>, <code>@Lookup</code> method injection, or a scoped proxy.)</div>
+<p><code>lazy-init="true"</code> on a singleton delays its creation until the first <code>getBean()</code>.</p>
+
+<h3 id="l4-lifecycle">4.3 The bean lifecycle</h3>
+<div class="flow">
+  <div class="step"><div class="num phase">START</div><div>Container starts: <code>new ClassPathXmlApplicationContext(...)</code></div></div>
+  <div class="step"><div class="num">1</div><div>Read bean definitions (XML)</div></div>
+  <div class="step"><div class="num">2</div><div><strong>Instantiate</strong>: the constructor is called</div></div>
+  <div class="step"><div class="num">3</div><div><strong>Populate properties</strong>: DI through setters / constructor args</div></div>
+  <div class="step"><div class="num">4</div><div>Aware callbacks: <code>BeanNameAware</code>, <code>ApplicationContextAware</code> (optional)</div></div>
+  <div class="step"><div class="num">5</div><div><code>BeanPostProcessor.postProcessBeforeInitialization</code></div></div>
+  <div class="step"><div class="num">6</div><div><strong>INIT</strong>: <code>@PostConstruct</code> → <code>InitializingBean.afterPropertiesSet()</code> → <code>init-method</code></div></div>
+  <div class="step"><div class="num">7</div><div><code>BeanPostProcessor.postProcessAfterInitialization</code></div></div>
+  <div class="step"><div class="num">8</div><div>Bean is <strong>READY</strong>. The app uses it (<code>getBean</code>, method calls …)</div></div>
+  <div class="step"><div class="num phase">STOP</div><div><code>context.close()</code> / JVM shutdown hook</div></div>
+  <div class="step"><div class="num">9</div><div><strong>DESTROY</strong>: <code>@PreDestroy</code> → <code>DisposableBean.destroy()</code> → <code>destroy-method</code> <em>(singletons only)</em></div></div>
+</div>
+
+<p>In this project:</p>
+<pre><code><span class="k">public class</span> <span class="t">SimpleUser</span> <span class="k">implements</span> <span class="t">User</span> {
+    <span class="k">public void</span> init()    { System.out.println(<span class="s">"Db connected successfully"</span>); }
+    <span class="k">public void</span> destroy() { System.out.println(<span class="s">"Db disconnected successfully"</span>); }
+}</code></pre>
+<ul>
+  <li><code>init-method="init"</code>: runs <strong>after</strong> the dependencies are injected. At that point <code>postList</code> is already set, so this is the right place for setup work (open a DB connection, load a cache, check config). In the constructor the dependencies aren't there yet.</li>
+  <li><code>destroy-method="destroy"</code>: runs when the container shuts down. Use it for cleanup (close connections, files, thread pools).</li>
+  <li>The method names are up to you. They must be <code>public void</code> with no arguments.</li>
+  <li>What you'll see: "Db connected successfully" is printed <strong>as soon as the context is created</strong>, before the username prompt, because singletons are eager. "Db disconnected successfully" appears only when <code>context.close()</code> runs.</li>
+</ul>
+
+<h3 id="l4-callbacks">4.4 Three ways to define lifecycle callbacks</h3>
+<table>
+  <tr><th>Approach</th><th>Init</th><th>Destroy</th><th>Notes</th></tr>
+  <tr><td>XML attributes</td><td><code>init-method="init"</code></td><td><code>destroy-method="destroy"</code></td><td>No Spring code in your class (<strong>used here</strong>)</td></tr>
+  <tr><td>Spring interfaces</td><td><code>InitializingBean.afterPropertiesSet()</code></td><td><code>DisposableBean.destroy()</code></td><td>Ties your class to Spring. Not recommended</td></tr>
+  <tr><td>Annotations</td><td><code>@PostConstruct</code></td><td><code>@PreDestroy</code></td><td><code>jakarta.annotation.*</code>. <strong>Most common today</strong></td></tr>
+</table>
+<p>Default for every bean in the file: <code>&lt;beans default-init-method="init" default-destroy-method="destroy"&gt;</code></p>
+
+<h3 id="l4-close">4.5 Closing the context</h3>
+<ul>
+  <li><code>ApplicationContext</code> (the interface) has <strong>no</strong> <code>close()</code> method. <code>ConfigurableApplicationContext</code> / <code>ClassPathXmlApplicationContext</code> / <code>AbstractApplicationContext</code> do. That's why the variable is declared as <code>ClassPathXmlApplicationContext</code>.</li>
+  <li><code>context.close()</code>: destroys singletons now.</li>
+  <li><code>context.registerShutdownHook()</code>: destroys them automatically when the JVM exits.</li>
+  <li><code>try (var ctx = new ClassPathXmlApplicationContext("...")) { ... }</code>: the context is <code>AutoCloseable</code>, so it closes automatically.</li>
+</ul>
+
+<h3 id="l4-bugs">4.6 Gotchas in the current socialmedia code</h3>
+<ol>
+  <li><strong>Option 3 (EXIT) doesn't exit.</strong> <code>case 3</code> calls <code>context.close()</code> but has no <code>break</code>/<code>return</code>, and the <code>while(true)</code> loop keeps going. The menu shows again. If the user then picks 1, calling <code>getBean("post")</code> on a closed context throws <code>IllegalStateException</code>. Fix:
+<pre><code><span class="k">case</span> 3: {
+    context.close();
+    <span class="k">return</span>;          <span class="c">// or System.exit(0)</span>
+}</code></pre></li>
+  <li><code>scanner.nextLine()</code> after <code>nextInt()</code> is needed to consume the leftover newline. It's correctly placed in case 1. Remember this pattern.</li>
+  <li>Menu typo: "Sell All your post" → "See All your posts".</li>
+  <li><code>user.setPostList(postList)</code> inside case 1 isn't needed. Spring already injected the same singleton <code>postList</code> through <code>&lt;property&gt;</code>.</li>
+</ol>
+
+<!-- ================================================================ -->
+<h2 id="gotchas">5. Common gotchas across the projects</h2>
+<table>
+  <tr><th>Issue</th><th>Where</th><th>Explanation</th></tr>
+  <tr><td>File name case</td><td><code>LaptopDealer</code> loads <code>"applicationContext.xml"</code> but the file is <code>ApplicationContext.xml</code></td><td>This works on Windows because its file system ignores case. It <strong>fails on Linux or when run from a JAR</strong> (<code>FileNotFoundException</code> / <code>BeanDefinitionStoreException</code>). Keep the names identical.</td></tr>
+  <tr><td>Missing <code>default</code> in the switch</td><td>carproject, LaptopDealer</td><td>An empty bean id → <code>NoSuchBeanDefinitionException</code></td></tr>
+  <tr><td><code>getBean(Interface.class)</code> with several implementations</td><td>LaptopDealer (commented out)</td><td><code>NoUniqueBeanDefinitionException</code>. Use the id, <code>primary="true"</code>, or (with annotations) <code>@Qualifier</code>/<code>@Primary</code></td></tr>
+  <tr><td>No-arg constructor required</td><td>all</td><td>Unless <code>&lt;constructor-arg&gt;</code> is used. Otherwise: <code>BeanInstantiationException: No default constructor found</code></td></tr>
+  <tr><td>Wrong FQCN in <code>class=""</code></td><td>TemplateTax XML</td><td><code>ClassNotFoundException</code> / <code>CannotLoadBeanClassException</code></td></tr>
+  <tr><td>Unused <code>import java.sql.SQLOutput;</code></td><td>LaptopDealer</td><td>Harmless. Your IDE added it automatically</td></tr>
+</table>
+
+<!-- ================================================================ -->
+<h2 id="exceptions">6. Common exceptions cheat sheet</h2>
+<table>
+  <tr><th>Exception</th><th>Cause</th></tr>
+  <tr><td><code>NoSuchBeanDefinitionException</code></td><td>No bean with that id/type exists</td></tr>
+  <tr><td><code>NoUniqueBeanDefinitionException</code></td><td><code>getBean(Type.class)</code> matched more than one bean</td></tr>
+  <tr><td><code>BeanCreationException</code></td><td>Something failed while creating a bean (look at the nested cause)</td></tr>
+  <tr><td><code>BeanCurrentlyInCreationException</code></td><td>Circular dependency with constructor injection</td></tr>
+  <tr><td><code>NotWritablePropertyException</code></td><td><code>&lt;property name="x"&gt;</code> has no matching <code>setX()</code></td></tr>
+  <tr><td><code>UnsatisfiedDependencyException</code></td><td>A required dependency couldn't be resolved</td></tr>
+  <tr><td><code>BeanDefinitionStoreException</code></td><td>The XML is missing or invalid</td></tr>
+  <tr><td><code>IllegalStateException: ... has been closed already</code></td><td><code>getBean()</code> was called after <code>context.close()</code></td></tr>
+</table>
+
+<!-- ================================================================ -->
+<h2 id="questions">7. Interview / revision questions</h2>
+<p>Click a question to see a short answer.</p>
+<details><summary>1. What is IoC? How is it related to DI?</summary>IoC means the framework, not your code, controls creating and wiring objects. DI is the way Spring achieves IoC: it injects dependencies through constructors or setters.</details>
+<details><summary>2. Difference between BeanFactory and ApplicationContext?</summary>BeanFactory is the basic, lazy container. ApplicationContext extends it, creates singletons eagerly, and adds events, i18n, AOP, and annotation support.</details>
+<details><summary>3. What is a Spring bean? Can one class have several beans?</summary>A bean is an object the container manages. Yes: LaptopDealer gets 9 beans out of 3 classes.</details>
+<details><summary>4. Constructor vs setter injection: when do you use each one? Which one handles circular dependencies?</summary>Constructor for mandatory, immutable dependencies; setter for optional ones. Setter injection can resolve circular dependencies between singletons; constructor injection can't.</details>
+<details><summary>5. What does &lt;property name="processors"&gt; call internally?</summary><code>setProcessors(...)</code>, matched by setter name using the JavaBeans convention.</details>
+<details><summary>6. ref vs value?</summary><code>ref</code> points to another bean by id; <code>value</code> is a literal that Spring converts to the target type.</details>
+<details><summary>7. What's the default bean scope? Spring singleton vs GoF singleton?</summary>Singleton. In Spring it means one instance per container per bean id; in GoF it means one per JVM/classloader.</details>
+<details><summary>8. Why is post a prototype in the socialmedia app?</summary>If it were a singleton, every "new" post would be the same object. Each message would overwrite the previous one, and the list would repeat the last message.</details>
+<details><summary>9. Is a prototype bean's destroy method called?</summary>No. Spring doesn't track prototype beans after handing them to you.</details>
+<details><summary>10. Put the bean lifecycle phases in order.</summary>Instantiate → populate properties → Aware → BPP before → init (@PostConstruct, afterPropertiesSet, init-method) → BPP after → ready → destroy (@PreDestroy, DisposableBean, destroy-method).</details>
+<details><summary>11. Why do initialization work in init-method and not in the constructor?</summary>With setter injection the dependencies aren't set yet when the constructor runs. init-method runs after injection is done.</details>
+<details><summary>12. Why can't you call close() on a variable typed as ApplicationContext?</summary><code>close()</code> is declared in <code>ConfigurableApplicationContext</code>, not in <code>ApplicationContext</code>.</details>
+<details><summary>13. What happens when you inject a prototype bean into a singleton bean?</summary>It's injected once, so the singleton always uses that one instance. Use ObjectFactory/Provider, @Lookup, or a scoped proxy to get a fresh one each time.</details>
+<details><summary>14. What's eager vs lazy initialization? How do you make a singleton lazy?</summary>Eager: created when the context starts. Lazy: created on the first getBean(). Use <code>lazy-init="true"</code> (or <code>@Lazy</code>).</details>
+
+<!-- ================================================================ -->
+<h2 id="next">8. Up next: DI with annotations</h2>
+<p>The untracked folder <code>DIusingannontation (1)/</code> points to the next topic. Every XML concept above has an annotation equivalent:</p>
+<table>
+  <tr><th>XML</th><th>Annotation</th></tr>
+  <tr><td><code>&lt;bean id="x" class="..."&gt;</code></td><td><code>@Component("x")</code> on the class, or a <code>@Bean</code> method</td></tr>
+  <tr><td><code>&lt;constructor-arg ref&gt;</code></td><td><code>@Autowired</code> on the constructor (optional if there's only one constructor)</td></tr>
+  <tr><td><code>&lt;property ref&gt;</code></td><td><code>@Autowired</code> on the setter</td></tr>
+  <tr><td>Choosing among several beans</td><td><code>@Qualifier("i5")</code> / <code>@Primary</code></td></tr>
+  <tr><td><code>&lt;property value="16"&gt;</code></td><td><code>@Value("16")</code> / <code>@Value("${prop}")</code></td></tr>
+  <tr><td><code>scope="prototype"</code></td><td><code>@Scope("prototype")</code></td></tr>
+  <tr><td><code>init-method</code> / <code>destroy-method</code></td><td><code>@PostConstruct</code> / <code>@PreDestroy</code></td></tr>
+  <tr><td><code>ClassPathXmlApplicationContext</code></td><td><code>AnnotationConfigApplicationContext</code> + <code>@ComponentScan</code></td></tr>
+</table>
+
+<footer>Spring Core lecture notes · generated from repo commits 1150f76 → 238a8f6</footer>
+</main>
+</body>
+</html>
